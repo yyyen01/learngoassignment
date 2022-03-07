@@ -250,14 +250,14 @@ func main() {
 			for {
 				select {
 				case <-reqCtx.Done():
-					fmt.Println("[", person.name, "]", "[Query Rank]", "Timeout! Exiting")
+					fmt.Println("[", person.name, "]", "[Query rank]", "Timeout! Exiting")
 					return
 				default:
 					rank, ok := manager.getRank(person)
 					if ok {
-						fmt.Println("[", person.name, "]", "[Query Rank]", rank, ",", person.currentFatRate, " ", time.Now())
+						fmt.Println("[", person.name, "]", "[Query rank]", rank, ",", person.currentFatRate, " ", time.Now())
 					} else {
-						fmt.Println("[", person.name, "]", "[Query Rank]", "  not found!")
+						fmt.Println("[", person.name, "]", "[Query rank]", "  not found!")
 					}
 
 				}

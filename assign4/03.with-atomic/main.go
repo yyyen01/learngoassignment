@@ -7,9 +7,12 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
+
+var v atomic.Value
 
 type Person struct {
 	//assuming there is no duplicate name
@@ -21,32 +24,36 @@ type Person struct {
 type MutexFatRateRankMachine struct {
 	scoreboard  []Person
 	registrants map[string]Person
-	l           sync.RWMutex
+	//l           sync.RWMutex
 }
 
 func NewMutexFatRateRankMachine(maxRegistrant int) *MutexFatRateRankMachine {
-	return &MutexFatRateRankMachine{
+	machine := &MutexFatRateRankMachine{
 		scoreboard:  make([]Person, 0, maxRegistrant),
 		registrants: map[string]Person{},
 	}
+	v.Store(machine)
+	return machine
 }
 
 func (machine *MutexFatRateRankMachine) register(p Person) {
-	machine.l.Lock()
-	defer machine.l.Unlock()
+	//machine.l.Lock()
+	//defer machine.l.Unlock()
+	m1 := v.Load().(*MutexFatRateRankMachine)
+	defer v.Store(m1)
 
-	_, ok := machine.registrants[p.name]
+	_, ok := m1.registrants[p.name]
 	//if it does not exist in scoreboard, then register as new user
 	if ok == false {
-		for i, pl := range machine.scoreboard {
+		for i, pl := range m1.scoreboard {
 			if p.currentFatRate <= pl.currentFatRate {
-				machine.scoreboard = insert(machine.scoreboard, p, i)
-				machine.registrants[p.name] = p
+				m1.scoreboard = insert(m1.scoreboard, p, i)
+				m1.registrants[p.name] = p
 				return
 			}
 		}
-		machine.scoreboard = append(machine.scoreboard, p)
-		machine.registrants[p.name] = p
+		m1.scoreboard = append(m1.scoreboard, p)
+		m1.registrants[p.name] = p
 	}
 }
 
@@ -55,23 +62,25 @@ func insert(a []Person, p Person, i int) []Person {
 	return append(a[:i], append([]Person{p}, a[i:]...)...)
 }
 
-func (machine *MutexFatRateRankMachine) PrintScoreboardWithLock() {
-	machine.l.RLock()
-	defer machine.l.RUnlock()
-	machine.PrintScoreboard()
-}
+//func (machine *MutexFatRateRankMachine) PrintScoreboardWithLock() {
+//	machine.l.RLock()
+//	defer machine.l.RUnlock()
+//	machine.PrintScoreboard()
+//}
 
 func (machine *MutexFatRateRankMachine) PrintScoreboard() {
-	for i, person := range machine.scoreboard {
+	m1 := v.Load().(*MutexFatRateRankMachine)
+	for i, person := range m1.scoreboard {
 		fmt.Println(i+1, ": ", person.name, " ", person.currentFatRate)
 	}
 }
 
 func (machine *MutexFatRateRankMachine) getRank(name string) (int, bool) {
-	machine.l.RLock()
-	defer machine.l.RUnlock()
+	//machine.l.RLock()
+	//defer machine.l.RUnlock()
+	m1 := v.Load().(*MutexFatRateRankMachine)
 
-	for i, person := range machine.scoreboard {
+	for i, person := range m1.scoreboard {
 		if person.name == name {
 			return i + 1, true
 		}
@@ -80,9 +89,9 @@ func (machine *MutexFatRateRankMachine) getRank(name string) (int, bool) {
 }
 
 func (machine *MutexFatRateRankMachine) updateFatRate(p Person) (int, bool) {
-	machine.l.Lock()
-	defer machine.l.Unlock()
-
+	//machine.l.Lock()
+	//defer machine.l.Unlock()
+	defer v.Store(machine)
 	_, ok := machine.registrants[p.name]
 	//if it does not exist in scoreboard, then return as false
 	if ok == true {
@@ -143,7 +152,7 @@ func main() {
 		}(i)
 	}
 	wg.Wait()
-	manager.PrintScoreboardWithLock()
+	manager.PrintScoreboard()
 	//registration done
 
 	//simulate a timeout situation. In real case, it should be some terminating condition
@@ -220,7 +229,7 @@ func main() {
 	fmt.Println("---------------------------------------")
 	fmt.Println("Final Scoreboard!")
 	fmt.Println("---------------------------------------")
-	manager.PrintScoreboardWithLock()
+	manager.PrintScoreboard()
 
 	fmt.Println("Program ended successfully!")
 }
