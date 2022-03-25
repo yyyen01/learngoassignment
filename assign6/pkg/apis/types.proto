@@ -1,0 +1,30 @@
+syntax = "proto3";
+package apis;
+option go_package = "./";
+
+message CirCleList {
+  repeated Circle items = 1;
+}
+
+message Circle {
+  // @gotags: gorm:"primaryKey;auto_increment;not_null;column:ID"
+  uint32 id = 1;
+  // @gotags: gorm:"column:timestamp"
+  int64  timestamp = 2;
+  // @gotags: gorm:"column:person_id"
+  uint32 person_id = 3;
+  // @gotags: gorm:"column:person_name"
+  string person_name = 4;
+  // @gotags: gorm:"column:sex"
+  string sex = 5;
+  // @gotags: gorm:"column:content"
+  string content = 6;
+  // @gotags: gorm:"column:at_time_height"
+  float  at_time_height = 7;
+  // @gotags: gorm:"column:at_time_weight"
+  float  at_time_weight = 8;
+  // @gotags: gorm:"column:at_time_age"
+  uint32 at_time_age = 9;
+  // @gotags: gorm:"column:visible"
+  bool  visible = 10;
+}
