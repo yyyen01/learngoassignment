@@ -53,7 +53,7 @@ func (d dbCircle) PostStatus(c *apis.Circle) error {
 	}
 
 	fmt.Println("Post status successfully : %+v", c)
-	_ = d.embedCircle.PostStatus(c)
+	_ = d.embedCircle.PostStatus()
 	return nil
 }
 

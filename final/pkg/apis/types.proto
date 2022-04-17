@@ -1,0 +1,63 @@
+syntax = "proto3";
+package apis;
+option go_package = "./";
+
+
+
+service ChatService {
+  rpc Register(UserInfo) returns (UserInfo){}
+  rpc Login(UserInfo) returns (UserInfo){}
+  rpc GetOnlineUsers(PageNumber) returns (OnlineUsers){}
+  rpc Chat(AccountNumber) returns (ChatRecords){}
+  rpc ChatHistory(AccountNumber) returns (ChatRecords){}
+  rpc Subscribe(AccountNumber) returns (Status){}
+  rpc EndChat(AccountNumber) returns (Status){}
+
+}
+
+message AccountNumber {
+  int64 accountNo = 1;
+}
+
+message Status {
+  bool status = 1;
+}
+
+message PageNumber{
+  int64 page = 1;
+}
+
+message OnlineUsers{
+  repeated UserInfo userInfo = 1;
+}
+
+message UserInfo {
+  // @gotags: gorm:"primaryKey;column:id"
+  int64 id = 1;
+  // @gotags: gorm:"column:account_no"
+  int64 accountNo = 2;
+  // @gotags: gorm:"column:password"
+  string password = 3;
+  // @gotags: gorm:"column:nickname"
+  string nickName = 4;
+
+}
+
+message ChatRecords{
+  repeated ChatRecord record = 1;
+}
+
+message ChatRecord {
+  // @gotags: gorm:"primaryKey;column:id"
+  int64 id = 1;
+  // @gotags: gorm:"column:sender_id"
+  int64 senderID = 2;
+  // @gotags: gorm:"column:recipient_id"
+  int64 recipientID = 3;
+  // @gotags: gorm:"column:chat_time"
+  int64 chatTime = 4;
+  // @gotags: gorm:"column:content"
+  string content = 5;
+}
+
+
